@@ -20,5 +20,13 @@ let db = {
             likeCount: 5,
             commentCount:3
         }
+    ],
+    comments:[
+        {
+            userHandle:'user',
+            screamId:'',
+            body:'',
+            createdAt:''
+        }
     ]
 }
