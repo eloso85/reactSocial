@@ -40,5 +40,20 @@ exports.validateLoginData = (data)=>{
     return {
         errors,
         valid: Object.keys(errors).length === 0? true : false
+    };
+};
+
+exports.reduceUserDetails = (data) => {
+    let userDetails ={};
+
+    if(!isEmpty(data.bio.trim())) userDetails.bio = data.bio;// data is request.bio . trim to remove whitespace .if not empty
+    if(!isEmpty(data.website.trim())){
+       //https://website.com
+       if(data.website.trim().substring(0,4)!=='http'){//this checks if not http
+           userDetails.website = `http://${data.website.trim()}`; //if user submits website.com this adds https
+         } else userDetails.website = data.website; // if it does have http go data website
     }
+    if(!isEmpty(data.location.trim())) userDetails.location = data.location; //front end will send 3 propierties react app will send bio property with empty string
+
+    return userDetails;
 }
