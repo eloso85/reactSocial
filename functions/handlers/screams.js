@@ -1,28 +1,29 @@
 const {db} = require('../util/admin')
 
-exports.getAllScreams =(req,res) =>{
-    db
-    .collection('screams')
+exports.getAllScreams = (req, res) => {
+  db.collection('screams')
     .orderBy('createdAt', 'desc')
     .get()
-    .then(data =>{
-            let screams =[];
-        data.forEach(doc=>{
-            screams.push({
-                screamId: doc.id,
-                body: doc.data().body,
-                userHandle: doc.data().userHandle,
-                createdAt: doc.data().createdAt 
-
-            });
-        })
-        return res.json(screams);
+    .then((data) => {
+      let screams = [];
+      data.forEach((doc) => {
+        screams.push({
+          screamId: doc.id,
+          body: doc.data().body,
+          userHandle: doc.data().userHandle,
+          createdAt: doc.data().createdAt,
+          commentCount: doc.data().commentCount,
+          likeCount: doc.data().likeCount,
+          userImage: doc.data().userImage
+        });
+      });
+      return res.json(screams);
     })
-    .catch((err) => {console.error(err)
-        res.status(500).json({error: err.code});
-    }); 
-    
-}
+    .catch((err) => {
+      console.error(err);
+      res.status(500).json({ error: err.code });
+    });
+};
 
 exports.postOneScream = (req, res)=>{
    
@@ -79,7 +80,7 @@ exports.getScream = (req,res)=>{
 //comment on comment
 
 exports.commentOnScream = (req,res)=>{
-    if (req.body.body.trim() === "") return res.status(400).json({error:'must not be empty'});
+    if (req.body.body.trim() === "") return res.status(400).json({comment:'must not be empty'});
 
     const newComment = {
         body: req.body.body,
