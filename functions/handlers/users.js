@@ -195,64 +195,60 @@ exports.getAuthenticatedUser = (req, res) => {
       });
   };
 
-exports.uploadImage = (req,res)=>{ //install npm busboy for this to work
-    const Busboy = require('busboy')
-    const path = require('path');//is a default package
-    const os = require ('os');//defualt
-    const fs = require('fs');//defualt
-
-    const busboy = new Busboy({headers: req.headers});
-
-    let imageFileName 
+  exports.uploadImage = (req, res) => {
+    const BusBoy = require('busboy');
+    const path = require('path');
+    const os = require('os');
+    const fs = require('fs');
+  
+    const busboy = new BusBoy({ headers: req.headers });
+  
     let imageToBeUploaded = {};
-
-    busboy.on('file', (fieldname, file, filename, encoding, mimetype )=>{
-        if(mimetype !== 'image/jpeg' && mimetype !== 'image/png'){
-            return res.status(400).json({error: 'wrong file type submitted'});
-        }
-        console.log(fieldname);
-        console.log(filename);
-        console.log(mimetype);
-        //my.image.png 
-        const imageExtension = filename.split('.')[filename.split('.').length -1 ];//split string by dots on each dotacces last item in array
-        //83272387238.png
-        const imageFileName =`${Math.round(Math.random()*100000000000)}.${imageExtension}`;
-
-        const filepath = path.join(os.tmpdir(), imageFileName);
-
-        imageToBeUploaded ={filepath, mimetype}
-
-        file.pipe(fs.createWriteStream(filepath));//2:12
-
-    })
-
-    busboy.on('finish',() =>{
-        admin
+    let imageFileName;
+  
+    busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
+      console.log(fieldname, file, filename, encoding, mimetype);
+      if (mimetype !== 'image/jpeg' && mimetype !== 'image/png') {
+        return res.status(400).json({ error: 'Wrong file type submitted' });
+      }
+      // my.image.png => ['my', 'image', 'png']
+      const imageExtension = filename.split('.')[filename.split('.').length - 1];
+      // 32756238461724837.png
+      imageFileName = `${Math.round(
+        Math.random() * 1000000000000
+      ).toString()}.${imageExtension}`;
+      const filepath = path.join(os.tmpdir(), imageFileName);
+      imageToBeUploaded = { filepath, mimetype };
+      file.pipe(fs.createWriteStream(filepath));
+    });
+    busboy.on('finish', () => {
+      admin
         .storage()
         .bucket()
-        .upload(imageToBeUploaded.filepath,{
-            resumable: false,
-            metadata:{
-                metadata:{
-                    contentType: imageToBeUploaded.mimetype
-                }
+        .upload(imageToBeUploaded.filepath, {
+          resumable: false,
+          metadata: {
+            metadata: {
+              contentType: imageToBeUploaded.mimetype
             }
+          }
         })
-        .then(()=>{
-            const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${imageFileName}?alt=media`;
-            return db.doc(`/user/${req.user.handle}`).update({imageUrl });
+        .then(() => {
+          const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${
+            config.storageBucket
+          }/o/${imageFileName}?alt=media`;
+          return db.doc(`/user/${req.user.handle}`).update({ imageUrl });
         })
-        .then(()=>{
-            return res.json({message: "Image uploaded successfully"})
+        .then(() => {
+          return res.json({ message: 'image uploaded successfully' });
         })
-        .catch(err=>{
-            console.error(err)
-            return res.status(500).json({error: err.code})
-        })
-    })
+        .catch((err) => {
+          console.error(err);
+          return res.status(500).json({ error: 'something went wrong' });
+        });
+    });
     busboy.end(req.rawBody);
-
-}
+  };
 
 exports.markNotificationsRead = (req, res) => {
     let batch = db.batch();// firebase to update multiple documents

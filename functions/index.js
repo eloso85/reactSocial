@@ -118,7 +118,7 @@ exports.createNotificationOnLike = functions
     } else return true;
   });
 
-  exports.onScreamDelete = functions
+  exports.onScreamDelete = functions //this deletes all scream info
   
   .firestore.document('/screams/{screamId}')
   .onDelete((snapshot, context) => {
