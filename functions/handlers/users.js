@@ -2,6 +2,8 @@ const {admin,db} = require ('../util/admin');
 
 const config = require('../util/config')
 
+const {uuid} = require("uuidv4")
+
 const firebase = require('firebase');
 
 firebase.initializeApp(config)
@@ -205,6 +207,7 @@ exports.getAuthenticatedUser = (req, res) => {
   
     let imageToBeUploaded = {};
     let imageFileName;
+    let generatedToken = uuid()
   
     busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
       console.log(fieldname, file, filename, encoding, mimetype);
@@ -229,15 +232,14 @@ exports.getAuthenticatedUser = (req, res) => {
           resumable: false,
           metadata: {
             metadata: {
-              contentType: imageToBeUploaded.mimetype
+              contentType: imageToBeUploaded.mimetype,
+              firebaseStorageDownloadTokens: generatedToken,
             }
           }
         })
         .then(() => {
-          const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${
-            config.storageBucket
-          }/o/${imageFileName}?alt=media`;
-          return db.doc(`/user/${req.user.handle}`).update({ imageUrl });
+            const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${imageFileName}?alt=media&token=${generatedToken}`;
+            return db.doc(`/user/${req.user.handle}`).update({ imageUrl });
         })
         .then(() => {
           return res.json({ message: 'image uploaded successfully' });
